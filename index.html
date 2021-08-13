@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Display a map with a custom style</title>
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+		<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet">
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
+		<script src="https://pym.nprapps.org/pym.v1.js"></script>
+
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: 'ProximaNova-Light', Georgia, serif;
+			}
+			h2,
+			h3 {
+				margin: 10px;
+				font-size: 1.2em;
+				font-family: 'ProximaNova-Light', Georgia, serif;
+
+			}
+			h3 {
+				font-size: 1em;
+			}
+			p {
+				font-size: 0.85em;
+				margin: 10px;
+				text-align: left;
+			}
+			.map-overlay {
+				width: 100%;
+				background: #f1f1f1 !important;
+				font-family: 'ProximaNova-Light', Georgia, serif;
+				overflow: auto;
+				/* border-radius: 3px; */
+			}
+			#map {
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				width: 100%;
+			}
+			.map-container {
+				position: relative;
+				width: 100%;
+				height: 0;
+				padding: 0 0 70% 0;
+				margin:auto;
+				
+			}
+
+
+			@media (min-width: 760px) {
+				.map-container {
+				padding: 0 0 60% 0;
+				}
+  			}
+
+			#features {
+				top: 0;
+				height: 110px;
+				/* margin-top: 5px; */
+				width: 100%;
+			}
+			#legend {
+				padding: 10px;
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+				line-height: 18px;
+				height: 200px;
+				margin-bottom: 40px;
+				width: 120px;
+			}
+			.legend-key {
+				display: inline-block;
+				border-radius: 20%;
+				width: 10px;
+				height: 10px;
+				margin-right: 5px;
+			}
+			.text-legend {
+        /* background-color: #fff; */
+				font: 12px/20px 'ProximaNova-Light', Georgia, serif;
+				/* padding: 10px; */
+				position: relative;
+				z-index: 1;
+				max-width: 100%;
+				left: 50%;
+				transform: translateX(-50%);
+				text-align: center;
+				}
+				
+			.text-legend h4 {
+				margin: 0 0 10px;
+				margin-bottom:5px;
+				font-size: 16px;
+				}
+				
+			.text-legend div span {
+				display: inline-block;
+				height: 10px;
+				margin-right: 2px;
+				width: 10px;
+				font-size: 14px;
+				}
+
+			.footer {
+				padding-top:5px;
+				/* padding-bottom:20px; */
+				font-size:14px;
+				font-family: 'ProximaNova-Light', Georgia, serif;
+				line-height: 1.1rem;
+				/* margin-left:50px; */
+				}
+
+			</style>
+	</head>
+	<body>
+		<hr>
+		<h2 style="text-align: center;">Most Kentucky School Districts Will Not Require Masks</h2>
+		<div id="Spread" class="text-legend" style="display: block">
+			<h4>Masks Required</h4>
+			<div>
+				<span style="background-color: #4daf4a"></span>Yes(26)
+				<span style="background-color: #ff7f00"></span>No(109)
+				<span style="background-color: #377ed8"></span>Required in some circumstances(8)
+				<span style="background-color: #984ea3"></span>To be determined(4)
+				<span style="background-color: #fb9a99"></span>Unknown(24)
+			</div>
+		</div>
+		<div class="map-container">
+			<div id="map"></div>
+		</div>
+
+		<div class="map-overlay" id="features">
+			<h2>Incidence Rates</h2>
+			<div id="pd"><p>Click Ky. counties</p></div>
+		</div>
+		<p class='footer'>Note: Data based on a survey of 171 Kentucky school district websites and social media on Aug. 5, 2021. Districts labeled "unknown" had no information on their mask policy available on their website or social media.</p>
+		<p>Map:Suhail Bhat / WFPL</p>
+		<hr>
+
+
+			<script>
+				mapboxgl.accessToken = 'pk.eyJ1Ijoic3VoYWlsLWJoYXQiLCJhIjoiY2tpbWxzbnZ1MGRqejJ4bncwNHl4anUzaiJ9.NsWEhUt8IvcwkFyDOh9h7g';
+
+				var map = new mapboxgl.Map({
+					container: 'map', // container ID
+					style: 'mapbox://styles/suhail-bhat/cks0s9xkx7u5s18rz2l5ue8la',
+					center: [-85.865, 37.752 ], 
+					zoom: 7.4,// starting zoom
+					minZoom: 5.3,
+					trackResize: true,
+					dragRotate: false,
+					touchZoomRotate: true
+				});
+				const zoomThreshold = 4
+
+				
+
+				const bbox = [-89.571203,36.497058,-81.964788,39.147732]
+				map.fitBounds(bbox)
+
+				map.on('click', function (e) {
+				var counties = map.queryRenderedFeatures(e.point, {
+				'source-layer': ["mask_covid_MAPBOX-dn73e1"]
+				});			
+				if (counties.length > 0) {
+				document.getElementById('pd').innerHTML =
+				'<h3><strong>' +
+				counties[0].properties.d_school_district + 
+				'</strong></h3><p><strong><em>' + 
+				counties[0].properties.d_Rate +
+				'</strong> avg. daily cases per 100,000 people as of Aug 5</em></p>'
+				} else {
+				document.getElementById('pd').innerHTML =
+				'<p>Click on a county</p>';
+				}
+		});
+		const pymChild = new pym.Child({ polling: 100 });
+
+
+			</script>
+	 
+	</body>
+</html>
